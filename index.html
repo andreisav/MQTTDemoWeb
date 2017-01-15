@@ -148,7 +148,7 @@
     client.subscribe(topic, { qos: 0 });
     $('#topics').prepend('<li class="list-group-item">' + topic + '</li>');
 
-    clientSend('Hello', test_topic);
+    clientSend(JSON.stringify({msg: 'Hello'}), test_topic);
 
   }
 
@@ -176,12 +176,44 @@
       var telemetry = parsed.telemetry;
 
       //TODO figure out how to update li's directly
-      if (did !== undefined && telemetry !== undefined) {
-        devices[did] = telemetry;
+      if (did && telemetry) {
+        var accel = telemetry.accel;
+        var loc = telemetry.loc;
+
+        if (accel) {
+          if (devices[did])  
+              devices[did].accel = accel;
+          else
+              devices[did] = {accel: accel};
+        }
+        if (loc) {
+          if (devices[did])  
+              devices[did].loc = loc;
+          else
+              devices[did] = {loc: loc};
+        }
+ 
+
         $('#devices').empty();
 
         for (var key in devices) {
-          $('#devices').prepend('<li class="list-group-item" id="' + did + '">' + did + ': State: ' + devices[key].state + '</li>');
+          var strLoc = "<label>Location: </label>";
+          var dev_loc = devices[key].loc;
+          //loc = {lat:37.7723756,long:-122.39392315};
+
+          if (dev_loc != undefined) {
+            var imgURL = "https://maps.googleapis.com/maps/api/staticmap?size=191x100&center=" + dev_loc.lat + "," + dev_loc.long +"&zoom=10&markers=" + dev_loc.lat + "," + dev_loc.long ;
+            strLoc = "<img src='" + imgURL + "'></img>"
+            console.log(strLoc);
+          }
+         
+          var dev_accel = devices[key].accel;
+          var strAccel = "";
+          if (dev_accel) {
+            strAccel = JSON.stringify(accel);
+          }
+
+          $('#devices').prepend('<li class="list-group-item" id="' + did + '"><label>ID: </label>' + did + '&nbsp;&nbsp;' + strLoc + '  <label>Accel:</label> ' + strAccel + '</li>');
         }
 
         // if (devices[did] === undefined) {
@@ -195,16 +227,12 @@
 
         //       $('#devices').prepend('<li class="list-group-item" id="' + did + '">' + did + ': State: ' + telemetry.state+ '</li>');
         //      }
-        // }
-
-
       }
     } catch (e) {
-      console.log("onMessageArrived: Invalid JSON");
+      console.error("Exception:" + e.message);
     }
 
     $('#messages').prepend('<li class="list-group-item">' + topic + ': <pre> ' + payload + '</pre></li>');
-
 
   }
 
