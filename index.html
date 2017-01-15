@@ -245,7 +245,7 @@
   function sendCommand() {
     var msg = $('#txtCommand').val();
     msg = { did: "234389908509", command: msg };
-    clientSend(JSON.stringify(msg), 'as_demo_mqtt/devices/commands/234389908509');
+    clientSend(JSON.stringify(msg), 'as_demo_mqtt/devices/234389908509/commands');
   }
 
   $(document).ready(function () {
